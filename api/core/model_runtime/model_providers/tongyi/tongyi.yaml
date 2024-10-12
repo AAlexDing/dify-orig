@@ -18,7 +18,6 @@ supported_model_types:
   - llm
   - tts
   - text-embedding
-  - rerank
 configurate_methods:
   - predefined-model
   - customizable-model

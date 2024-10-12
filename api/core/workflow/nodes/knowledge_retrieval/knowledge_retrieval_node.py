@@ -14,9 +14,10 @@ from core.model_runtime.entities.model_entities import ModelFeature, ModelType
 from core.model_runtime.model_providers.__base.large_language_model import LargeLanguageModel
 from core.rag.retrieval.dataset_retrieval import DatasetRetrieval
 from core.rag.retrieval.retrieval_methods import RetrievalMethod
-from core.workflow.entities.node_entities import NodeRunResult, NodeType
+from core.workflow.entities.node_entities import NodeRunResult
 from core.workflow.nodes.base_node import BaseNode
 from core.workflow.nodes.knowledge_retrieval.entities import KnowledgeRetrievalNodeData
+from enums import NodeType
 from extensions.ext_database import db
 from models.dataset import Dataset, Document, DocumentSegment
 from models.workflow import WorkflowNodeExecutionStatus
@@ -34,7 +35,7 @@ default_retrieval_model = {
 
 class KnowledgeRetrievalNode(BaseNode):
     _node_data_cls = KnowledgeRetrievalNodeData
-    node_type = NodeType.KNOWLEDGE_RETRIEVAL
+    _node_type = NodeType.KNOWLEDGE_RETRIEVAL
 
     def _run(self) -> NodeRunResult:
         node_data = cast(KnowledgeRetrievalNodeData, self.node_data)
@@ -79,9 +80,8 @@ class KnowledgeRetrievalNode(BaseNode):
 
         results = (
             db.session.query(Dataset)
-            .outerjoin(subquery, Dataset.id == subquery.c.dataset_id)
+            .join(subquery, Dataset.id == subquery.c.dataset_id)
             .filter(Dataset.tenant_id == self.tenant_id, Dataset.id.in_(dataset_ids))
-            .filter((subquery.c.available_document_count > 0) | (Dataset.provider == "external"))
             .all()
         )
 
@@ -122,13 +122,10 @@ class KnowledgeRetrievalNode(BaseNode):
                 )
         elif node_data.retrieval_mode == DatasetRetrieveConfigEntity.RetrieveStrategy.MULTIPLE.value:
             if node_data.multiple_retrieval_config.reranking_mode == "reranking_model":
-                if node_data.multiple_retrieval_config.reranking_model:
-                    reranking_model = {
-                        "reranking_provider_name": node_data.multiple_retrieval_config.reranking_model.provider,
-                        "reranking_model_name": node_data.multiple_retrieval_config.reranking_model.model,
-                    }
-                else:
-                    reranking_model = None
+                reranking_model = {
+                    "reranking_provider_name": node_data.multiple_retrieval_config.reranking_model.provider,
+                    "reranking_model_name": node_data.multiple_retrieval_config.reranking_model.model,
+                }
                 weights = None
             elif node_data.multiple_retrieval_config.reranking_mode == "weighted_score":
                 reranking_model = None

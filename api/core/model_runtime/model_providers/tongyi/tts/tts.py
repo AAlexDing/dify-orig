@@ -1,6 +1,6 @@
 import threading
 from queue import Queue
-from typing import Any, Optional
+from typing import Optional
 
 import dashscope
 from dashscope import SpeechSynthesizer
@@ -20,7 +20,7 @@ class TongyiText2SpeechModel(_CommonTongyi, TTSModel):
 
     def _invoke(
         self, model: str, tenant_id: str, credentials: dict, content_text: str, voice: str, user: Optional[str] = None
-    ) -> Any:
+    ) -> any:
         """
         _invoke text2speech model
 
@@ -58,7 +58,7 @@ class TongyiText2SpeechModel(_CommonTongyi, TTSModel):
         except Exception as ex:
             raise CredentialsValidateFailedError(str(ex))
 
-    def _tts_invoke_streaming(self, model: str, credentials: dict, content_text: str, voice: str) -> Any:
+    def _tts_invoke_streaming(self, model: str, credentials: dict, content_text: str, voice: str) -> any:
         """
         _tts_invoke_streaming text2speech model
 

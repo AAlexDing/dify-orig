@@ -111,10 +111,9 @@ class VannaTool(BuiltinTool):
         # with "visualize" set to True (default behavior) leads to remote code execution.
         # Affected versions: <= 0.5.5
         #########################################################################################
-        allow_llm_to_see_data = tool_parameters.get("allow_llm_to_see_data", False)
-        res = vn.ask(
-            prompt, print_results=False, auto_train=True, visualize=False, allow_llm_to_see_data=allow_llm_to_see_data
-        )
+        generate_chart = False
+        # generate_chart = tool_parameters.get("generate_chart", True)
+        res = vn.ask(prompt, False, True, generate_chart)
 
         result = []
 

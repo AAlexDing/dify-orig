@@ -70,19 +70,11 @@ class LocalaiRerankModel(RerankModel):
 
             rerank_documents = []
             for result in results["results"]:
-                index = result["index"]
-                if "document" in result:
-                    text = result["document"]["text"]
-                else:
-                    # llama.cpp rerank maynot return original documents
-                    text = docs[index]
-
                 rerank_document = RerankDocument(
-                    index=index,
-                    text=text,
+                    index=result["index"],
+                    text=result["document"]["text"],
                     score=result["relevance_score"],
                 )
-
                 if score_threshold is None or result["relevance_score"] >= score_threshold:
                     rerank_documents.append(rerank_document)
 

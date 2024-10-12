@@ -1,5 +1,3 @@
-from typing import Optional
-
 import httpx
 
 from core.tools.errors import ToolProviderCredentialValidationError
@@ -34,12 +32,7 @@ class FeishuRequest:
         return res.get("tenant_access_token")
 
     def _send_request(
-        self,
-        url: str,
-        method: str = "post",
-        require_token: bool = True,
-        payload: Optional[dict] = None,
-        params: Optional[dict] = None,
+        self, url: str, method: str = "post", require_token: bool = True, payload: dict = None, params: dict = None
     ):
         headers = {
             "Content-Type": "application/json",

@@ -104,15 +104,14 @@ class StableDiffusionTool(BuiltinTool):
         model = self.runtime.credentials.get("model", None)
         if not model:
             return self.create_text_message("Please input model")
-        api_key = self.runtime.credentials.get("api_key") or "abc"
-        headers = {"Authorization": f"Bearer {api_key}"}
+
         # set model
         try:
             url = str(URL(base_url) / "sdapi" / "v1" / "options")
             response = post(
                 url,
                 json={"sd_model_checkpoint": model},
-                headers=headers,
+                headers={"Authorization": f"Bearer {self.runtime.credentials['api_key']}"},
             )
             if response.status_code != 200:
                 raise ToolProviderCredentialValidationError("Failed to set model, please tell user to set model")
@@ -258,15 +257,14 @@ class StableDiffusionTool(BuiltinTool):
             draw_options["prompt"] = f"{lora},{prompt}"
         else:
             draw_options["prompt"] = prompt
-        api_key = self.runtime.credentials.get("api_key") or "abc"
-        headers = {"Authorization": f"Bearer {api_key}"}
+
         try:
             url = str(URL(base_url) / "sdapi" / "v1" / "img2img")
             response = post(
                 url,
                 json=draw_options,
                 timeout=120,
-                headers=headers,
+                headers={"Authorization": f"Bearer {self.runtime.credentials['api_key']}"},
             )
             if response.status_code != 200:
                 return self.create_text_message("Failed to generate image")
@@ -300,15 +298,14 @@ class StableDiffusionTool(BuiltinTool):
         else:
             draw_options["prompt"] = prompt
         draw_options["override_settings"]["sd_model_checkpoint"] = model
-        api_key = self.runtime.credentials.get("api_key") or "abc"
-        headers = {"Authorization": f"Bearer {api_key}"}
+
         try:
             url = str(URL(base_url) / "sdapi" / "v1" / "txt2img")
             response = post(
                 url,
                 json=draw_options,
                 timeout=120,
-                headers=headers,
+                headers={"Authorization": f"Bearer {self.runtime.credentials['api_key']}"},
             )
             if response.status_code != 200:
                 return self.create_text_message("Failed to generate image")

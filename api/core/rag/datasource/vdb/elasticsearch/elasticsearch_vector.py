@@ -1,6 +1,5 @@
 import json
 import logging
-import math
 from typing import Any, Optional
 from urllib.parse import urlparse
 
@@ -113,8 +112,7 @@ class ElasticSearchVector(BaseVector):
 
     def search_by_vector(self, query_vector: list[float], **kwargs: Any) -> list[Document]:
         top_k = kwargs.get("top_k", 10)
-        num_candidates = math.ceil(top_k * 1.5)
-        knn = {"field": Field.VECTOR.value, "query_vector": query_vector, "k": top_k, "num_candidates": num_candidates}
+        knn = {"field": Field.VECTOR.value, "query_vector": query_vector, "k": top_k}
 
         results = self._client.search(index=self._collection_name, knn=knn, size=top_k)
 

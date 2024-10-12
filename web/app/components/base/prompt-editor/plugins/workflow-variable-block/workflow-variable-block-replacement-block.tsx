@@ -12,7 +12,7 @@ import type { WorkflowVariableBlockType } from '../../types'
 import { CustomTextNode } from '../custom-text/node'
 import { $createWorkflowVariableBlockNode } from './node'
 import { WorkflowVariableBlockNode } from './index'
-import { VAR_REGEX as REGEX, resetReg } from '@/config'
+import { VAR_REGEX as REGEX } from '@/config'
 
 const WorkflowVariableBlockReplacementBlock = ({
   workflowNodesMap,
@@ -48,12 +48,11 @@ const WorkflowVariableBlockReplacementBlock = ({
   }, [])
 
   const transformListener = useCallback((textNode: any) => {
-    resetReg()
     return decoratorTransform(textNode, getMatch, createWorkflowVariableBlockNode)
   }, [createWorkflowVariableBlockNode, getMatch])
 
   useEffect(() => {
-    resetReg()
+    REGEX.lastIndex = 0
     return mergeRegister(
       editor.registerNodeTransform(CustomTextNode, transformListener),
     )

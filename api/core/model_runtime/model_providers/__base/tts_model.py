@@ -1,7 +1,7 @@
 import logging
 import re
 from abc import abstractmethod
-from typing import Any, Optional
+from typing import Optional
 
 from pydantic import ConfigDict
 
@@ -88,7 +88,7 @@ class TTSModel(AIModel):
             else:
                 return [{"name": d["name"], "value": d["mode"]} for d in voices]
 
-    def _get_model_default_voice(self, model: str, credentials: dict) -> Any:
+    def _get_model_default_voice(self, model: str, credentials: dict) -> any:
         """
         Get voice for given tts model
 

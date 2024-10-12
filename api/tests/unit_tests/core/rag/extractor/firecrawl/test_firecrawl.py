@@ -1,6 +1,9 @@
 import os
+from unittest import mock
 
 from core.rag.extractor.firecrawl.firecrawl_app import FirecrawlApp
+from core.rag.extractor.firecrawl.firecrawl_web_extractor import FirecrawlWebExtractor
+from core.rag.models.document import Document
 from tests.unit_tests.core.rag.extractor.test_notion_extractor import _mock_response
 
 

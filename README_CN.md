@@ -17,7 +17,7 @@
             alt="chat on Discord"></a>
     <a href="https://twitter.com/intent/follow?screen_name=dify_ai" target="_blank">
         <img src="https://img.shields.io/twitter/follow/dify_ai?logo=X&color=%20%23f5f5f5"
-            alt="follow on X(Twitter)"></a>
+            alt="follow on Twitter"></a>
     <a href="https://hub.docker.com/u/langgenius" target="_blank">
         <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/langgenius/dify-web?labelColor=%20%23FDB062&color=%20%23f79009"></a>
     <a href="https://github.com/langgenius/dify/graphs/commit-activity" target="_blank">
@@ -202,13 +202,9 @@ docker compose up -d
 
 #### 使用 Terraform 部署
 
-使用 [terraform](https://www.terraform.io/) 一键将 Dify 部署到云平台
-
 ##### Azure Global
+使用 [terraform](https://www.terraform.io/) 一键部署 Dify 到 Azure。
 - [Azure Terraform by @nikawang](https://github.com/nikawang/dify-azure-terraform)
-
-##### Google Cloud
-- [Google Cloud Terraform by @sotazum](https://github.com/DeNA/dify-google-cloud-terraform)
 
 ## Star History
 
@@ -236,7 +232,7 @@ docker compose up -d
 - [GitHub Issues](https://github.com/langgenius/dify/issues)。👉：使用 Dify.AI 时遇到的错误和问题，请参阅[贡献指南](CONTRIBUTING.md)。
 - [电子邮件支持](mailto:hello@dify.ai?subject=[GitHub]Questions%20About%20Dify)。👉：关于使用 Dify.AI 的问题。
 - [Discord](https://discord.gg/FngNHpbcY7)。👉：分享您的应用程序并与社区交流。
-- [X(Twitter)](https://twitter.com/dify_ai)。👉：分享您的应用程序并与社区交流。
+- [Twitter](https://twitter.com/dify_ai)。👉：分享您的应用程序并与社区交流。
 - [商业许可](mailto:business@dify.ai?subject=[GitHub]Business%20License%20Inquiry)。👉：有关商业用途许可 Dify.AI 的商业咨询。
  - [微信]() 👉：扫描下方二维码，添加微信好友，备注 Dify，我们将邀请您加入 Dify 社区。  
 <img src="./images/wechat.png" alt="wechat" width="100"/>

@@ -39,16 +39,13 @@ jobs:
             api/pyproject.toml
             api/poetry.lock
 
-      - name: Check Poetry lockfile
+      - name: Poetry check
         run: |
           poetry check -C api --lock
           poetry show -C api
 
       - name: Install dependencies
         run: poetry install -C api --with dev
-
-      - name: Check dependencies in pyproject.toml
-        run: poetry run -C api bash dev/pytest/pytest_artifacts.sh
 
       - name: Run Unit tests
         run: poetry run -C api bash dev/pytest/pytest_unit_tests.sh

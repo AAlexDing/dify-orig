@@ -16,7 +16,7 @@ from flask import Response, current_app, stream_with_context
 from flask_restful import fields
 
 from core.app.features.rate_limiting.rate_limit import RateLimitGenerator
-from core.file.upload_file_parser import UploadFileParser
+from core.file import helpers as file_helpers
 from extensions.ext_redis import redis_client
 from models.account import Account
 
@@ -33,7 +33,7 @@ class AppIconUrlField(fields.Raw):
         from models.model import IconType
 
         if obj.icon_type == IconType.IMAGE.value:
-            return UploadFileParser.get_signed_temp_image_url(obj.icon)
+            return file_helpers.get_signed_image_url(obj.icon)
         return None
 
 
@@ -189,7 +189,7 @@ def compact_generate_response(response: Union[dict, RateLimitGenerator]) -> Resp
 
 class TokenManager:
     @classmethod
-    def generate_token(cls, account: Account, token_type: str, additional_data: Optional[dict] = None) -> str:
+    def generate_token(cls, account: Account, token_type: str, additional_data: dict = None) -> str:
         old_token = cls._get_current_token_for_account(account.id, token_type)
         if old_token:
             if isinstance(old_token, bytes):

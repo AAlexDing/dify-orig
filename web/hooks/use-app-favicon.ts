@@ -21,7 +21,7 @@ export function useAppFavicon(options: UseAppFaviconOptions) {
   } = options
 
   useAsyncEffect(async () => {
-    if (!enable || (icon_type === 'image' && !icon_url) || (icon_type === 'emoji' && !icon))
+    if (!enable)
       return
 
     const isValidImageIcon = icon_type === 'image' && icon_url

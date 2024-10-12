@@ -1,5 +1,6 @@
 from time import time
 
+from openai.resources.models import Models
 from openai.types.model import Model
 
 

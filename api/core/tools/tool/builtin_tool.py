@@ -1,5 +1,3 @@
-from typing import Optional
-
 from core.model_runtime.entities.llm_entities import LLMResult
 from core.model_runtime.entities.message_entities import PromptMessage, SystemPromptMessage, UserPromptMessage
 from core.tools.entities.tool_entities import ToolProviderType
@@ -126,7 +124,7 @@ class BuiltinTool(Tool):
 
         return result
 
-    def get_url(self, url: str, user_agent: Optional[str] = None) -> str:
+    def get_url(self, url: str, user_agent: str = None) -> str:
         """
         get url
         """

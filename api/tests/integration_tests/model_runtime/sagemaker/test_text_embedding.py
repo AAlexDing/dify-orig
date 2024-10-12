@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from core.model_runtime.entities.text_embedding_entities import TextEmbeddingResult
