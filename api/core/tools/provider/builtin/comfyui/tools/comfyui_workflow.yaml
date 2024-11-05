@@ -1,54 +1,27 @@
 identity:
-  name: workflow
-  author: hjlarry
+  name: comfyworkflow
+  author: Dinggg!
   label:
-    en_US: workflow
-    zh_Hans: 工作流
+    en_US: ComfyUI Workflow
+    zh_Hans: ComfyUI 工作流
+    pt_BR: ComfyUI Workflow
 description:
   human:
-    en_US: Run ComfyUI workflow.
-    zh_Hans: 运行ComfyUI工作流。
-  llm: Run ComfyUI workflow.
+    en_US: Input an API format json string exported from ComfyUI, and generate an image. (You need to enable the developer options in ComfyUI and click "Export(API Format)")
+    zh_Hans: 输入由ComfyUI导出的API格式的json文件，即可生成图像（注意：需要先在ComfyUI中启用开发者选项，并点击“Export(API Format)”）
+    pt_BR: Input an API format json string exported from ComfyUI, and generate an image. (You need to enable the developer options in ComfyUI and click "Export(API Format)")
+  llm: Generate an image using ComfyUI based on the given json file.
 parameters:
-  - name: positive_prompt
-    type: string
-    label:
-      en_US: Prompt
-      zh_Hans: 提示词
-    llm_description: Image prompt, you should describe the image you want to generate as a list of words as possible as detailed, the prompt must be written in English.
-    form: llm
-  - name: negative_prompt
-    type: string
-    label:
-      en_US: Negative Prompt
-      zh_Hans: 负面提示词
-    llm_description: Negative prompt, you should describe the image you don't want to generate as a list of words as possible as detailed, the prompt must be written in English.
-    form: llm
-  - name: images
-    type: files
-    label:
-      en_US: Input Images
-      zh_Hans: 输入的图片
-    llm_description: The input images, used to transfer to the comfyui workflow to generate another image.
-    form: llm
-  - name: workflow_json
+  - name: json_string
     type: string
     required: true
     label:
-      en_US: Workflow JSON
+      en_US: Json String
+      zh_Hans: Json 字符串
+      pt_BR: Json String
     human_description:
-      en_US: exported from ComfyUI workflow
-      zh_Hans: 从ComfyUI的工作流中导出
-    form: form
-  - name: image_ids
-    type: string
-    label:
-      en_US: Image Node ID List
-      zh_Hans: 图片节点ID列表
-    placeholder:
-      en_US: Use commas to separate multiple node ID
-      zh_Hans: 多个节点ID时使用半角逗号分隔
-    human_description:
-      en_US: When the workflow has multiple image nodes, enter the ID list of these nodes, and the images will be passed to ComfyUI in the order of the list.
-      zh_Hans: 当工作流有多个图片节点时，输入这些节点的ID列表，图片将按列表顺序传给ComfyUI
-    form: form
+      en_US: An API format json string exported from ComfyUI(You need to enable the developer options in ComfyUI and click "Export(API Format)")
+      zh_Hans: 由ComfyUI导出的API格式的json字符串（注意：需要先在ComfyUI中启用开发者选项，并点击“Export(API Format)”）
+      pt_BR: An API format json string exported from ComfyUI(You need to enable the developer options in ComfyUI and click "Export(API Format)")
+    llm_description: The API format json string exported from ComfyUI Workflow
+    form: llm

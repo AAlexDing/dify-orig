@@ -1,63 +1,77 @@
 import json
-from typing import Any
+import re
+from typing import Any, Union
 
-from core.file import FileType
-from core.tools.entities.tool_entities import ToolInvokeMessage
-from core.tools.errors import ToolParameterValidationError
+from core.tools.entities.common_entities import I18nObject
+from core.tools.entities.tool_entities import ToolInvokeMessage, ToolParameter
 from core.tools.provider.builtin.comfyui.tools.comfyui_client import ComfyUiClient
 from core.tools.tool.builtin_tool import BuiltinTool
 
 
-class ComfyUIWorkflowTool(BuiltinTool):
-    def _invoke(self, user_id: str, tool_parameters: dict[str, Any]) -> ToolInvokeMessage | list[ToolInvokeMessage]:
-        comfyui = ComfyUiClient(self.runtime.credentials["base_url"])
-
-        positive_prompt = tool_parameters.get("positive_prompt", "")
-        negative_prompt = tool_parameters.get("negative_prompt", "")
-        images = tool_parameters.get("images") or []
-        workflow = tool_parameters.get("workflow_json")
-        image_names = []
-        for image in images:
-            if image.type != FileType.IMAGE:
-                continue
-            image_name = comfyui.upload_image(image).get("name")
-            image_names.append(image_name)
-
-        set_prompt_with_ksampler = True
-        if "{{positive_prompt}}" in workflow:
-            set_prompt_with_ksampler = False
-            workflow = workflow.replace("{{positive_prompt}}", positive_prompt)
-            workflow = workflow.replace("{{negative_prompt}}", negative_prompt)
+class ComfyWorkflowTool(BuiltinTool):
+    def _invoke(
+        self, user_id: str, tool_parameters: dict[str, Any]
+    ) -> Union[ToolInvokeMessage, list[ToolInvokeMessage]]:
+        base_url = self.runtime.credentials.get("base_url", "")
+        if not base_url:
+            return self.create_text_message("请输入base_url")
+        token = self.runtime.credentials.get("token", "")
+        comfyui = ComfyUiClient(base_url, token)
+        json_string = tool_parameters.get("json_string", "")
+        if not json_string:
+            return self.create_text_message("请输入json_string")
 
         try:
-            prompt = json.loads(workflow)
-        except:
-            return self.create_text_message("the Workflow JSON is not correct")
+            # 清理JSON字符串
+            json_string = re.sub(r'[\t\n\r]', '', json_string)  # 移除制表符和换行符
+            json_string = re.sub(r'[\xa0]', '', json_string)  # 移除不间断空格
+            json_string = json_string.replace("\\", "/!")  # 绕过反斜杠错误
+            workflow = json.loads(json_string, strict=False)
+            workflow = replace_in_object(workflow)
+            result = comfyui.generate_image_by_prompt(prompt=workflow)
 
-        if set_prompt_with_ksampler:
-            try:
-                prompt = comfyui.set_prompt_by_ksampler(prompt, positive_prompt, negative_prompt)
-            except:
-                raise ToolParameterValidationError(
-                    "Failed set prompt with KSampler, try replace prompt to {{positive_prompt}} in your workflow json"
-                )
+            image = b""
+            for node in result:
+                for img in result[node]:
+                    if img:
+                        image = img
+                        break
 
-        if image_names:
-            if image_ids := tool_parameters.get("image_ids"):
-                image_ids = image_ids.split(",")
-                try:
-                    prompt = comfyui.set_prompt_images_by_ids(prompt, image_names, image_ids)
-                except:
-                    raise ToolParameterValidationError("the Image Node ID List not match your upload image files.")
-            else:
-                prompt = comfyui.set_prompt_images_by_default(prompt, image_names)
-
-        images = comfyui.generate_image_by_prompt(prompt)
-        result = []
-        for img in images:
-            result.append(
-                self.create_blob_message(
-                    blob=img, meta={"mime_type": "image/png"}, save_as=self.VariableKey.IMAGE.value
-                )
+            return self.create_blob_message(
+                blob=image, meta={"mime_type": "image/png"}, save_as=self.VariableKey.IMAGE.value
             )
-        return result
+
+        except json.JSONDecodeError as e:
+            return self.create_text_message(f"无效的JSON字符串: {str(e)}")
+        except Exception as e:
+            return self.create_text_message(f"生成图像失败: {str(e)}")
+
+    def get_runtime_parameters(self) -> list[ToolParameter]:
+        return [
+            ToolParameter(
+                name="json_string",
+                label=I18nObject(en_US="Json String", zh_Hans="Json 字符串"),
+                human_description=I18nObject(
+                    en_US="An API format json string exported from ComfyUI(You need to enable the developer options in ComfyUI and click 'Export(API Format)')",
+                    zh_Hans="由ComfyUI导出的API格式的json字符串（注意：需要先在ComfyUI中启用开发者选项，并点击“Export(API Format)”）",
+                ),
+                type=ToolParameter.ToolParameterType.STRING,
+                form=ToolParameter.ToolParameterForm.LLM,
+                llm_description="The API format json string exported from ComfyUI Workflow",
+                required=True,
+            ),
+        ]
+
+
+def replace_in_object(obj):
+    '''
+    绕过反斜杠错误
+    '''
+    if isinstance(obj, dict):
+        return {k: replace_in_object(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [replace_in_object(elem) for elem in obj]
+    elif isinstance(obj, str):
+        return obj.replace('/!', '\\')
+    else:
+        return obj
