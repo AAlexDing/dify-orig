@@ -73,22 +73,20 @@ class ComfyUiClient:
         )
         return response.content
 
-    def upload_image(self, image_file: File) -> dict:
+    def upload_image(self, image_file) -> dict:
         url = self._get_url_with_token("upload/image")
-        file = download(image_file)
-        files = {"image": (image_file.filename, file, image_file.mime_type), "overwrite": "true"}
+        files = {"image": image_file, "overwrite": "true"}
         res = httpx.post(url, files=files)
         return res.json()
 
-    def upload_mask(self, mask_file: File, type: str = "", subfolder: str = "", original_ref: str = ""):
+    def upload_mask(self, mask_file, type: str = "", subfolder: str = "", original_ref: str = ""):
         """
         上传蒙版图片接口，一般用于局部重绘
         original_ref	{“filename”:”下载.png”,”type”:”input”,”subfolder”:”clipspace”}	string
         """
         url = self._get_url_with_token("upload/mask")
-        file = download(mask_file)
         req_body = {
-            "image": file,
+            "image": mask_file,
             "type": type,
             "subfolder": subfolder,
             "original_ref": original_ref
