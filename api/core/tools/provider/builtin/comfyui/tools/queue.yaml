@@ -1,0 +1,41 @@
+identity:
+  name: comfyui_queue
+  author: Dinggg!
+  label:
+    en_US: Queue
+    zh_Hans: 队列
+    pt_BR: Queue
+description:
+  human:
+    en_US: Execute the related operations of the queue
+    zh_Hans: 执行队列的相关操作
+    pt_BR: Execute the related operations of the queue
+  llm: execute the related operations of the queue
+parameters:
+  - name: action
+    type: string
+    required: true
+    label:
+      en_US: Action
+      zh_Hans: 操作
+      pt_BR: Action
+    human_description: 
+      en_US: Action of the queue
+      zh_Hans: 队列操作方式
+      pt_BR: Action of the queue
+    llm_description: Action of the queue
+    form: form
+  - name: task_id
+    type: string
+    required: false
+    label:
+      en_US: Task ID
+      zh_Hans: 任务ID
+      pt_BR: Task ID
+    human_description:
+      en_US: Task ID for specific operations
+      zh_Hans: 特定操作所需的任务ID
+      pt_BR: Task ID for specific operations
+    llm_description: Task ID for specific operations
+    form: llm
+

@@ -6,9 +6,6 @@ import httpx
 from websocket import WebSocket
 from yarl import URL
 
-from core.file.file_manager import download
-from core.file.models import File
-
 
 class ComfyUiClient:
     def __init__(self, base_url: str, token: str = ''):
@@ -37,7 +34,8 @@ class ComfyUiClient:
     def get_queue_remaining(self):
         url = self._get_url_with_token("prompt")
         response = httpx.get(url, timeout=(2, 10))
-        return response.json().get("exec_info", {}).get("queue_remaining", 0)
+        remaining = response.json().get("exec_info", {}).get("queue_remaining", 0)
+        return remaining
 
     def get_queue_detail_status(self):
         url = self._get_url_with_token("queue")
@@ -59,19 +57,13 @@ class ComfyUiClient:
         response = httpx.post(url, timeout=(2, 10))
         return response.json()
     
-    def get_history(self, prompt_id: str) -> dict:
+    def get_history(self, prompt_id: str = "") -> dict:
         url = self._get_url_with_token("history")
-        res = httpx.get(url, params={"prompt_id": prompt_id})
-        history = res.json()[prompt_id]
-        return history
-
-    def get_image(self, filename: str, subfolder: str, folder_type: str) -> bytes:
-        url = self._get_url_with_token("view")
-        response = httpx.get(
-            url,
-            params={"filename": filename, "subfolder": subfolder, "type": folder_type},
-        )
-        return response.content
+        if prompt_id:
+            res = httpx.get(url, params={"prompt_id": prompt_id})
+        else:
+            res = httpx.get(url)
+        return res.json()
 
     def upload_image(self, image_file) -> dict:
         url = self._get_url_with_token("upload/image")
@@ -191,16 +183,17 @@ class ComfyUiClient:
             ws, client_id = self.open_websocket_connection()
             prompt_id = self.queue_prompt(client_id, prompt)
             self.track_progress(prompt, ws, prompt_id)
-            history = self.get_history(prompt_id)
+            history_full = self.get_history(prompt_id)
+            history = history_full[prompt_id]
             images = []
             for output in history["outputs"].values():
                 for img in output.get("images", []):
-                    image_data = self.get_image(img["filename"], img["subfolder"], img["type"])
+                    image_data = self.download_image(img["filename"], img["subfolder"], img["type"])
                     images.append(image_data)
             return images
         finally:
             ws.close()
-
+    
     def get_checkpoints(self) -> list[str]:
         """
         get checkpoints

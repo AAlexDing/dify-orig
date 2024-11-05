@@ -42,18 +42,16 @@ class ComfyWorkflowTool(BuiltinTool):
             json_string = json_string.replace("\\", "/!")  # 绕过反斜杠错误
             workflow = json.loads(json_string, strict=False)
             workflow = replace_in_object(workflow)
-            result = comfyui.generate_image_by_prompt(prompt=workflow)
+            images = comfyui.generate_image_by_prompt(prompt=workflow)
 
-            image = b""
-            for node in result:
-                for img in result[node]:
-                    if img:
-                        image = img
-                        break
-
-            return self.create_blob_message(
-                blob=image, meta={"mime_type": "image/png"}, save_as=self.VariableKey.IMAGE.value
-            )
+            result = []
+            for img in images:
+                result.append(
+                    self.create_blob_message(
+                        blob=img, meta={"mime_type": "image/png"}, save_as=self.VariableKey.IMAGE.value
+                    )
+                )
+            return result
 
         except json.JSONDecodeError as e:
             return self.create_text_message(f"无效的JSON字符串: {str(e)}")
