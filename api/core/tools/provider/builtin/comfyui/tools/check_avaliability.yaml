@@ -7,7 +7,7 @@ identity:
     pt_BR: Check Avaliability
 description:
   human:
-    en_US: Check if ComfyUI is available
-    zh_Hans: 检查ComfyUI是否可用
-    pt_BR: Check if ComfyUI is available
-  llm: Check if ComfyUI is available
+    en_US: Check if ComfyUI is available,if online return 1,if offline return 0
+    zh_Hans: 检查ComfyUI是否可用，在线返回 1，不在线返回 0
+    pt_BR: Check if ComfyUI is available,if online return 1,if offline return 0
+  llm: Check if ComfyUI is available,if online return 1,if offline return 0

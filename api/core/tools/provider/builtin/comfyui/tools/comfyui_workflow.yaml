@@ -7,9 +7,9 @@ identity:
     pt_BR: ComfyUI Workflow
 description:
   human:
-    en_US: Input an API format json string exported from ComfyUI, and generate an image. (You need to enable the developer options in ComfyUI and click "Export(API Format)")
-    zh_Hans: 输入由ComfyUI导出的API格式的json文件，即可生成图像（注意：需要先在ComfyUI中启用开发者选项，并点击“Export(API Format)”）
-    pt_BR: Input an API format json string exported from ComfyUI, and generate an image. (You need to enable the developer options in ComfyUI and click "Export(API Format)")
+    en_US: Input an API format json string exported from ComfyUI, and generate an image. 
+    zh_Hans: 输入由ComfyUI导出的API格式的json文件，即可生成图像
+    pt_BR: Input an API format json string exported from ComfyUI, and generate an image.
   llm: Generate an image using ComfyUI based on the given json file.
 parameters:
   - name: json_string
