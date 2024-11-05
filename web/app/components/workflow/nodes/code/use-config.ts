@@ -100,8 +100,8 @@ const useConfig = (id: string, payload: CodeNodeType) => {
     onOutputKeyOrdersChange: setOutputKeyOrders,
   })
 
-  const filterVar = useCallback((varPayload: Var) => {
-    return [VarType.string, VarType.number, VarType.secret, VarType.object, VarType.array, VarType.arrayNumber, VarType.arrayString, VarType.arrayObject].includes(varPayload.type)
+  const filterVar = useCallback(() => {
+    return true
   }, [])
 
   // single run
