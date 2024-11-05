@@ -8,6 +8,20 @@ from core.tools.provider.builtin.comfyui.tools.comfyui_client import ComfyUiClie
 from core.tools.tool.builtin_tool import BuiltinTool
 
 
+def sanitize_json_string(s):
+    escape_dict = {
+        "\n": "\\n",
+        "\r": "\\r",
+        "\t": "\\t",
+        "\b": "\\b",
+        "\f": "\\f",
+    }
+    for char, escaped in escape_dict.items():
+        s = s.replace(char, escaped)
+
+    return s
+
+
 class ComfyWorkflowTool(BuiltinTool):
     def _invoke(
         self, user_id: str, tool_parameters: dict[str, Any]
