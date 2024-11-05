@@ -21,3 +21,18 @@ credentials_for_provider:
       en_US: Please input your ComfyUI server's Base URL
       zh_Hans: 请输入你的 ComfyUI 服务器的 Base URL
     url: https://docs.dify.ai/guides/tools/tool-configuration/comfyui
+  token:
+    type: text-input
+    required: false
+    label:
+      en_US: Token (optional)
+      zh_Hans: Token（可选）
+      pt_BR: Token (optional)
+    placeholder:
+      en_US: Please input your token
+      zh_Hans: 请输入你的令牌
+      pt_BR: Please input your token
+    help:
+      en_US: If you installed ComfyUI-Login, the command line will output For direct API calls, use token=$2b$12$JOFb68xxxxxxx, enter the characters after token= here.
+      zh_Hans: 如果你安装了 ComfyUI-Login，命令行会输出 For direct API calls, use token=$2b$12$JOFb68xxxxxxx，在此处输入 token= 后面的字符。
+      pt_BR: If you installed ComfyUI-Login, the command line will output For direct API calls, use token=$2b$12$JOFb68xxxxxxx, enter the characters after token= here.

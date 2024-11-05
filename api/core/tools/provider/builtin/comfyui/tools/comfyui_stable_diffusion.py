@@ -1,18 +1,17 @@
 import json
 import os
 import random
-import uuid
 from copy import deepcopy
 from enum import Enum
 from typing import Any, Union
 
-import websocket
-from httpx import get, post
+from httpx import get
 from yarl import URL
 
 from core.tools.entities.common_entities import I18nObject
 from core.tools.entities.tool_entities import ToolInvokeMessage, ToolParameter, ToolParameterOption
 from core.tools.errors import ToolProviderCredentialValidationError
+from core.tools.provider.builtin.comfyui.tools.comfyui_client import ComfyUiClient
 from core.tools.tool.builtin_tool import BuiltinTool
 
 SD_TXT2IMG_OPTIONS = {}
@@ -44,9 +43,10 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
         """
         # base url
         base_url = self.runtime.credentials.get("base_url", "")
+        token = self.runtime.credentials.get("token", "")
         if not base_url:
             return self.create_text_message("Please input base_url")
-
+        
         if tool_parameters.get("model"):
             self.runtime.credentials["model"] = tool_parameters["model"]
 
@@ -96,7 +96,6 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
             lora_strength_list.append(tool_parameters.get("lora_strength_3", 1))
 
         return self.text2img(
-            base_url=base_url,
             model=model,
             model_type=model_type,
             prompt=prompt,
@@ -110,59 +109,7 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
             lora_list=lora_list,
             lora_strength_list=lora_strength_list,
         )
-
-    def get_checkpoints(self) -> list[str]:
-        """
-        get checkpoints
-        """
-        try:
-            base_url = self.runtime.credentials.get("base_url", None)
-            if not base_url:
-                return []
-            api_url = str(URL(base_url) / "models" / "checkpoints")
-            response = get(url=api_url, timeout=(2, 10))
-            if response.status_code != 200:
-                return []
-            else:
-                return response.json()
-        except Exception as e:
-            return []
-
-    def get_loras(self) -> list[str]:
-        """
-        get loras
-        """
-        try:
-            base_url = self.runtime.credentials.get("base_url", None)
-            if not base_url:
-                return []
-            api_url = str(URL(base_url) / "models" / "loras")
-            response = get(url=api_url, timeout=(2, 10))
-            if response.status_code != 200:
-                return []
-            else:
-                return response.json()
-        except Exception as e:
-            return []
-
-    def get_sample_methods(self) -> tuple[list[str], list[str]]:
-        """
-        get sample method
-        """
-        try:
-            base_url = self.runtime.credentials.get("base_url", None)
-            if not base_url:
-                return [], []
-            api_url = str(URL(base_url) / "object_info" / "KSampler")
-            response = get(url=api_url, timeout=(2, 10))
-            if response.status_code != 200:
-                return [], []
-            else:
-                data = response.json()["KSampler"]["input"]["required"]
-                return data["sampler_name"][0], data["scheduler"][0]
-        except Exception as e:
-            return [], []
-
+        
     def validate_models(self) -> Union[ToolInvokeMessage, list[ToolInvokeMessage]]:
         """
         validate models
@@ -174,8 +121,11 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
             model = self.runtime.credentials.get("model", None)
             if not model:
                 raise ToolProviderCredentialValidationError("Please input model")
+            token = self.runtime.credentials.get("token", "")
 
             api_url = str(URL(base_url) / "models" / "checkpoints")
+            if token:
+                api_url = api_url + f"?token={token}"
             response = get(url=api_url, timeout=(2, 10))
             if response.status_code != 200:
                 raise ToolProviderCredentialValidationError("Failed to get models")
@@ -188,74 +138,8 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
         except Exception as e:
             raise ToolProviderCredentialValidationError(f"Failed to get models, {e}")
 
-    def get_history(self, base_url, prompt_id):
-        """
-        get history
-        """
-        url = str(URL(base_url) / "history")
-        respond = get(url, params={"prompt_id": prompt_id}, timeout=(2, 10))
-        return respond.json()
-
-    def download_image(self, base_url, filename, subfolder, folder_type):
-        """
-        download image
-        """
-        url = str(URL(base_url) / "view")
-        response = get(url, params={"filename": filename, "subfolder": subfolder, "type": folder_type}, timeout=(2, 10))
-        return response.content
-
-    def queue_prompt_image(self, base_url, client_id, prompt):
-        """
-        send prompt task and rotate
-        """
-        # initiate task execution
-        url = str(URL(base_url) / "prompt")
-        respond = post(url, data=json.dumps({"client_id": client_id, "prompt": prompt}), timeout=(2, 10))
-        prompt_id = respond.json()["prompt_id"]
-
-        ws = websocket.WebSocket()
-        if "https" in base_url:
-            ws_url = base_url.replace("https", "ws")
-        else:
-            ws_url = base_url.replace("http", "ws")
-        ws.connect(str(URL(f"{ws_url}") / "ws") + f"?clientId={client_id}", timeout=120)
-
-        # websocket rotate execution status
-        output_images = {}
-        while True:
-            out = ws.recv()
-            if isinstance(out, str):
-                message = json.loads(out)
-                if message["type"] == "executing":
-                    data = message["data"]
-                    if data["node"] is None and data["prompt_id"] == prompt_id:
-                        break  # Execution is done
-                elif message["type"] == "status":
-                    data = message["data"]
-                    if data["status"]["exec_info"]["queue_remaining"] == 0 and data.get("sid"):
-                        break  # Execution is done
-            else:
-                continue  # previews are binary data
-
-        # download image when execution finished
-        history = self.get_history(base_url, prompt_id)[prompt_id]
-        for o in history["outputs"]:
-            for node_id in history["outputs"]:
-                node_output = history["outputs"][node_id]
-                if "images" in node_output:
-                    images_output = []
-                    for image in node_output["images"]:
-                        image_data = self.download_image(base_url, image["filename"], image["subfolder"], image["type"])
-                        images_output.append(image_data)
-                    output_images[node_id] = images_output
-
-        ws.close()
-
-        return output_images
-
     def text2img(
         self,
-        base_url: str,
         model: str,
         model_type: str,
         prompt: str,
@@ -272,6 +156,12 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
         """
         generate image
         """
+        base_url = self.runtime.credentials.get("base_url", "")
+        token = self.runtime.credentials.get("token", "")
+        if not base_url:
+            return self.create_text_message("Please input base_url")
+        comfyui_api = ComfyUiClient(base_url, token)
+        
         if not SD_TXT2IMG_OPTIONS:
             current_dir = os.path.dirname(os.path.realpath(__file__))
             with open(os.path.join(current_dir, "txt2img.json")) as file:
@@ -321,8 +211,7 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
             draw_options["3"]["inputs"]["positive"][0] = last_node_id
 
         try:
-            client_id = str(uuid.uuid4())
-            result = self.queue_prompt_image(base_url, client_id, prompt=draw_options)
+            result = comfyui_api.generate_image_by_prompt(prompt=draw_options)
 
             # get first image
             image = b""
@@ -340,6 +229,7 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
             return self.create_text_message(f"Failed to generate image: {str(e)}")
 
     def get_runtime_parameters(self) -> list[ToolParameter]:
+        
         parameters = [
             ToolParameter(
                 name="prompt",
@@ -357,8 +247,15 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
             ),
         ]
         if self.runtime.credentials:
+            base_url = self.runtime.credentials.get("base_url", "")
+            token = self.runtime.credentials.get("token", "")
+            if not base_url:
+                return self.create_text_message("Please input base_url")
+            comfyui_api = ComfyUiClient(base_url, token)
             try:
-                models = self.get_checkpoints()
+                models = comfyui_api.get_checkpoints()
+                if not models:
+                    self.create_text_message("Please check base_url and token")
                 if len(models) != 0:
                     parameters.append(
                         ToolParameter(
@@ -380,7 +277,7 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
                             ],
                         )
                     )
-                loras = self.get_loras()
+                loras = comfyui_api.get_loras()
                 if len(loras) != 0:
                     for n in range(1, 4):
                         parameters.append(
@@ -403,7 +300,7 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
                                 ],
                             )
                         )
-                sample_methods, schedulers = self.get_sample_methods()
+                sample_methods, schedulers = comfyui_api.get_sample_methods()
                 if len(sample_methods) != 0:
                     parameters.append(
                         ToolParameter(
@@ -469,7 +366,7 @@ class ComfyuiStableDiffusionTool(BuiltinTool):
                         ],
                     )
                 )
-            except:
-                pass
+            except Exception as e:
+                print(e)
 
         return parameters

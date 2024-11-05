@@ -1,0 +1,13 @@
+identity:
+  name: comfyui_check_avaliability
+  author: Dinggg!
+  label:
+    en_US: Check Avaliability
+    zh_Hans: 检查ComfyUI可用性
+    pt_BR: Check Avaliability
+description:
+  human:
+    en_US: Check if ComfyUI is available
+    zh_Hans: 检查ComfyUI是否可用
+    pt_BR: Check if ComfyUI is available
+  llm: Check if ComfyUI is available
