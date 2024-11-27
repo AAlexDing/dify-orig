@@ -11,7 +11,7 @@ class ComfyUIProvider(BuiltinToolProviderController):
     def _validate_credentials(self, credentials: dict[str, Any]) -> None:
         ws = websocket.WebSocket()
         base_url = URL(credentials.get("base_url"))
-        token = URL(credentials.get("token"))
+        token = credentials.get("token")
         ws_address = f"ws://{base_url.authority}/ws?clientId=test123"
         if token:
             ws_address += "&token={}".format(token)
