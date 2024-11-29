@@ -1,0 +1,57 @@
+identity:
+  name: comfyui_preprocess
+  author: Dinggg!
+  label:
+    en_US: Preprocess
+    zh_Hans: 预处理
+    pt_BR: Preprocess
+description:
+  human:
+    en_US: Execute the related operations of the preprocess
+    zh_Hans: 执行预处理的相关操作
+    pt_BR: Execute the related operations of the preprocess
+  llm: execute the related operations of the preprocess
+parameters:
+  - name: image_file
+    type: files
+    required: true
+    label:
+      en_US: Image File
+      zh_Hans: 图片文件
+      pt_BR: Image File
+    human_description:
+      en_US: The image file in the conversation
+      zh_Hans: 对话内的图片文件
+      pt_BR: The image file in the conversation
+    llm_description: The image file in the conversation
+    form: llm
+  - name: max_resolution 
+    type: number
+    required: true
+    default: 1024
+    label:
+      en_US: Max Resolution
+      zh_Hans: 最大分辨率
+      pt_BR: Max Resolution
+    human_description:
+      en_US: Maximum resolution for image scaling
+      zh_Hans: 图像缩放的最大分辨率
+      pt_BR: Maximum resolution for image scaling
+    llm_description: Maximum resolution limit for scaling large images
+    form: form
+  - name: quality
+    type: number
+    required: true
+    default: 70
+    minimum: 1
+    maximum: 100
+    label:
+      en_US: Save Quality
+      zh_Hans: 保存质量
+      pt_BR: Save Quality
+    human_description:
+      en_US: Image save quality (1-100)
+      zh_Hans: 图像保存质量(1-100)
+      pt_BR: Image save quality (1-100)
+    llm_description: Quality setting for saving processed images
+    form: form
