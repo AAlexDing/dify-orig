@@ -214,11 +214,10 @@ const useConfig = (id: string, payload: ToolNodeType) => {
     .map(k => inputs.tool_parameters[k])
 
   const varInputs = getInputVars(hadVarParams.map((p) => {
-    if (p.type === VarType.variable) {
-      const value = Array.isArray(p.value) ? p.value : []
-      return `{{#${value.join('.')}#}}`
-    }
-    return p.value?.toString() ?? ''
+    if (p.type === VarType.variable)
+      return `{{#${(p.value as ValueSelector).join('.')}#}}`
+
+    return p.value as string
   }))
 
   const singleRunForms = (() => {
