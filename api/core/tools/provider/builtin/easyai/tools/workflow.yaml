@@ -52,4 +52,14 @@ parameters:
       pt_BR: Group Name (Optional)
     llm_description: The name of the group
     form: llm
+  - name: message_interval
+    type: number
+    required: false
+    label:
+      en_US: Message Interval
+      zh_Hans: 微信进度通知消息间隔
+      pt_BR: Message Interval
+    default: 25
+    llm_description: The interval of the message
+    form: llm
 
