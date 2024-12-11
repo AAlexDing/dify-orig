@@ -1,0 +1,27 @@
+identity:
+  name: easyai_upload_image
+  author: Dinggg!
+  label:
+    en_US: Upload Image
+    zh_Hans: 上传图片
+    pt_BR: Upload Image
+description:
+  human:
+    en_US: Upload the image in the conversation to EasyAI 
+    zh_Hans: 上传对话内的图片给EasyAI
+    pt_BR: Upload the image in the conversation to EasyAI
+  llm: Upload the image in the conversation to EasyAI
+parameters:
+  - name: image_file
+    type: files
+    required: true
+    label:
+      en_US: Image File
+      zh_Hans: 图片文件
+      pt_BR: Image File
+    human_description:
+      en_US: The image file in the conversation
+      zh_Hans: 对话内的图片文件
+      pt_BR: The image file in the conversation
+    llm_description: The image file in the conversation
+    form: llm

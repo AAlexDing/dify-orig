@@ -967,7 +967,7 @@ export const updateNodeVars = (oldNode: Node, oldVarSelector: ValueSelector, new
           Object.keys(payload.tool_parameters).forEach((key) => {
             const value = payload.tool_parameters[key]
             const { type } = value
-            if (type === ToolVarType.variable) {
+            if (type === ToolVarType.variable && Array.isArray(value.value) && value.value.join('.') === oldVarSelector.join('.')) {
               payload.tool_parameters[key] = {
                 ...value,
                 value: newVarSelector,

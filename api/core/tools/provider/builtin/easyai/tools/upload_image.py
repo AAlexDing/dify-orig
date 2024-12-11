@@ -7,7 +7,7 @@ from configs import dify_config
 from core.file.models import File
 from core.tools.entities.common_entities import I18nObject
 from core.tools.entities.tool_entities import ToolInvokeMessage, ToolParameter
-from core.tools.provider.builtin.comfyui.tools.comfyui_client import ComfyUiClient
+from core.tools.provider.builtin.easyai.tools.easyai_client import EasyAiClient
 from core.tools.tool.builtin_tool import BuiltinTool
 
 
@@ -15,11 +15,21 @@ class UploadImageTool(BuiltinTool):
     def _invoke(
         self, user_id: str, tool_parameters: dict[str, Any]
     ) -> Union[ToolInvokeMessage, list[ToolInvokeMessage]]:
+        # 获取配置
         base_url = self.runtime.credentials.get("base_url", "")
-        token = self.runtime.credentials.get("token", "")
         if not base_url:
             return self.create_text_message("请输入base_url")
-        comfyui_api = ComfyUiClient(base_url, token)
+        refresh_token = self.runtime.credentials.get("refresh_token", "")
+        if not refresh_token:
+            return self.create_text_message("请输入refresh_token")
+        socket_url = self.runtime.credentials.get("socket_url", "")
+        if not socket_url:
+            return self.create_text_message("请输入socket_url")
+        send_msg_api = self.runtime.credentials.get("send_msg_api", "")
+        if not send_msg_api:
+            return self.create_text_message("请输入send_msg_api")
+        easyai = EasyAiClient(base_url, socket_url, send_msg_api, refresh_token)
+        
         image_files = tool_parameters.get("image_file", [])
 
         if not image_files or not isinstance(image_files, list) or len(image_files) == 0:
@@ -37,17 +47,14 @@ class UploadImageTool(BuiltinTool):
             file_object = io.BytesIO(file_content)
             file_object.name = file_info.filename or "uploaded_image.png"
             
-            upload_resp = comfyui_api.upload_image(file_object)
+            upload_resp = easyai.upload_image(file_object)
             if not upload_resp:
                 results[str(idx)] = ""
                 continue
-            
-            subfolder = upload_resp.get("subfolder")
-            name = upload_resp.get("name")
-            if not subfolder:
-                results[str(idx)] = name
+            if upload_resp.get("status") == "success":
+                results[str(idx)] = upload_resp.get("data")
             else:
-                results[str(idx)] = subfolder + '\\' + name
+                results[str(idx)] = ""
         
         return self.create_json_message(results)
         
