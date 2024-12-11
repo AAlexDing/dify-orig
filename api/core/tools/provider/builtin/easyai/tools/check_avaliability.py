@@ -1,0 +1,35 @@
+
+from typing import Any, Union
+
+from core.tools.entities.tool_entities import ToolInvokeMessage
+from core.tools.provider.builtin.easyai.tools.easyai_client import EasyAiClient
+from core.tools.tool.builtin_tool import BuiltinTool
+
+
+class CheckAvaliabilityTool(BuiltinTool):
+    def _invoke(self, user_id: str, tool_parameters: dict[str, Any]
+                ) -> Union[ToolInvokeMessage, list[ToolInvokeMessage]]:
+        # 获取配置
+        base_url = self.runtime.credentials.get("base_url", "")
+        if not base_url:
+            return self.create_text_message("请输入base_url")
+        refresh_token = self.runtime.credentials.get("refresh_token", "")
+        if not refresh_token:
+            return self.create_text_message("请输入refresh_token")
+        socket_url = self.runtime.credentials.get("socket_url", "")
+        if not socket_url:
+            return self.create_text_message("请输入socket_url")
+        send_msg_api = self.runtime.credentials.get("send_msg_api", "")
+        if not send_msg_api:
+            return self.create_text_message("请输入send_msg_api")
+        easyai = EasyAiClient(base_url, socket_url, send_msg_api, refresh_token)
+        
+        draw_server = easyai.get_draw_server()
+        if draw_server:
+            for server in draw_server:
+                if server.get("status") == 1:
+                    return self.create_text_message("1")
+            return self.create_text_message("0")
+        else:
+            return self.create_text_message("0")
+
