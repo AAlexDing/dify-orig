@@ -38,9 +38,9 @@ class EasyAiWorkflowTool(BuiltinTool):
         options = json.loads(options)
         receiver_name = tool_parameters.get("receiver_name", "")
         group_name = tool_parameters.get("group_name", "")
-        #message_interval = tool_parameters.get("message_interval", 25)
+        message_interval = tool_parameters.get("message_interval", 25)
 
-        images_url = easyai.submit_task(params, options, receiver_name, group_name)
+        images_url = easyai.submit_task(params, options, receiver_name, group_name, message_interval)
         results = {}
         for idx, image_url in enumerate(images_url):
             if not isinstance(image_url, str):
@@ -92,6 +92,16 @@ class EasyAiWorkflowTool(BuiltinTool):
                 form=ToolParameter.ToolParameterForm.LLM,
                 llm_description="The name of the group",
                 required=False,
+            ),
+            ToolParameter(
+                name="message_interval",
+                label=I18nObject(en_US="Message Interval", zh_Hans="微信进度通知消息间隔"),
+                human_description=I18nObject(en_US="The interval of the message", zh_Hans="微信进度通知消息间隔"),
+                type=ToolParameter.ToolParameterType.NUMBER,
+                form=ToolParameter.ToolParameterForm.LLM,
+                llm_description="The interval of the message",
+                required=True,
+                default=25,
             ),
         ]
 
