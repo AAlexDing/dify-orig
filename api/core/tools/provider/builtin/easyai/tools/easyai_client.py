@@ -16,7 +16,7 @@ class EasyAiClient:
         self.send_msg_api = send_msg_api
         self.send_msg_total = None
         self.sent_progress_points = set()
-        
+        self.workflow_title = ""
         self.client_id = ""
         self.client_username = ""
         self.output = []
@@ -154,6 +154,7 @@ class EasyAiClient:
                     data = json.loads(data)
                 except json.JSONDecodeError:
                     print("消息格式不是JSON")
+                    self.sio.disconnect()
                     return
                     
             if isinstance(data, dict) and 'queue_status' in data:
@@ -167,9 +168,12 @@ class EasyAiClient:
                 if self.send_msg_total is None:
                     # 第一次接收到的time_remained 决定发送几次
                     self.send_msg_total = max(1, int(time_remained / self.message_interval))
-                    message = f"开始任务，预计时间: {time_remained}秒"
+                    if self.workflow_title:
+                        message = f"🧑‍🎨 正在生成图片... \n 当前模式：{self.workflow_title}\n 预计时间: {time_remained}秒"
+                    else:
+                        message = f"🧑‍🎨 正在生成图片... \n 预计时间: {time_remained}秒"
                     if queue:
-                        message += f"队列人数: {queue}"
+                        message += f"\n🚶‍♂️🚶‍♀️ 队列人数: {queue}"
                 else:
                     # 发送n次就均分100/(n+1)段
                     interval = 100 / (self.send_msg_total + 1)
@@ -177,26 +181,23 @@ class EasyAiClient:
                     for point in progress_points:
                         if progress > point and point not in self.sent_progress_points:
                             message = f"绘图进度: {progress}%，剩余时间: {time_remained}秒"
-                            if queue:
-                                message += f"队列人数: {queue}"
                             self.sent_progress_points.add(point)
                 if status == "success":
-                    message = "任务完成"
+                    message = "✅ 任务完成，开始下载图片..."
                     # {"queue_status":{"task_id":"675818777fec874a8e390453","server":"NAS","status":"success","data":{"status":"success","output":["http://kanju.la:59000/comfyui/image/temps/674f2650869e89835a6ef3e4/g4Zxa2-1K_00339_.png"],"type":"image","message":""},"message":""}}
                     self.output = data['queue_status']['data']['output']
                 elif status == "failed":
-                    message = "任务失败"
+                    message = "🚨 任务失败，请重试"
                 
                 # 如果message不为空，则发送消息
                 if message:
-                    print(message)
                     self.send_message_to_dow(message)
                 
                 # 如果任务完成，则断开连接
-                if status == "success":
+                if status in {"success", "failed"}:
                     self.sio.disconnect()
 
-    def submit_task(self, params: dict, options: dict, receiver_name: str, group_name: str, message_interval: int = 25):
+    def submit_task(self, params: dict, options: dict, receiver_name: str, group_name: str, message_interval: int = 50):
         """
         提交任务主入口
         """
@@ -210,8 +211,9 @@ class EasyAiClient:
         task_id = self.create_history(options["workflow_id"], self.client_id, params, options)
         if not task_id:
             print("创建绘图历史失败")
-            return "failed"
+            return []
         options["task_id"] = task_id
+        self.workflow_title = options["workflow_title"]
 
         try:
             self.init_socket()
@@ -232,7 +234,7 @@ class EasyAiClient:
             status = self.submit_custom_workflow(self.sio.sid, params, options)
             if status == "failed":
                 print("提交自定义工作流失败")
-                return "failed"
+                return []
             # print(f"task_id:{task_id}, socket_id:{socket_id}, client_id:{self.client_id}, status:{status}")
             
             # 等待消息
@@ -241,7 +243,7 @@ class EasyAiClient:
 
         except Exception as e:
             print(f"连接发生错误: {str(e)}")
-            return "failed"
+            return []
         finally:
             if self.sio.connected:
                 self.sio.disconnect()

@@ -54,12 +54,18 @@ parameters:
     form: llm
   - name: message_interval
     type: number
-    required: false
+    required: true
+    default: 25
+    minimum: 1
+    maximum: 100
     label:
       en_US: Message Interval
       zh_Hans: 微信进度通知消息间隔
       pt_BR: Message Interval
-    default: 25
+    human_description:
+      en_US: The interval of the message
+      zh_Hans: 微信进度通知消息间隔
+      pt_BR: The interval of the message
     llm_description: The interval of the message
-    form: llm
+    form: form
 
