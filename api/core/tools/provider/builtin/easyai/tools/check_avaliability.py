@@ -25,6 +25,9 @@ class CheckAvaliabilityTool(BuiltinTool):
         easyai = EasyAiClient(base_url, socket_url, send_msg_api, refresh_token)
         
         draw_server = easyai.get_draw_server()
+        # 0: 不可用，1: 可用，2: 未连接
+        if draw_server is None:
+            return self.create_text_message("2")
         if draw_server:
             for server in draw_server:
                 if server.get("status") == 1:

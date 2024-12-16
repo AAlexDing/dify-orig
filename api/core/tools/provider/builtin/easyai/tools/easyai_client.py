@@ -62,6 +62,8 @@ class EasyAiClient:
                                  headers={"Authorization": f"Bearer {self.get_token()}"})
             if response.status_code == 200:
                 return response.json()
+            elif response.status_code == 401:
+                return None
             else:
                 return []
         except Exception as e:
@@ -88,7 +90,7 @@ class EasyAiClient:
         提交自定义工作流
         """
         response = httpx.post(
-            f"{self.base_url}/draw/customeWorkflow",
+            f"{self.base_url}/draw/customWorkflow",
             json={"client_id": self.client_id, "socket_id": socket_id, "params": params, "options": options},
             headers={"Authorization": f"Bearer {self.get_token()}"}, timeout=(2, 10)
         )
@@ -164,14 +166,17 @@ class EasyAiClient:
                 progress = queue_status.get('progress', 0)
                 status = queue_status.get('status')
                 queue = queue_status.get('queue')
-                
+                if self.group_name:
+                    message = f"@{self.group_name} "
+                else:
+                    message = ""
                 if self.send_msg_total is None:
                     # 第一次接收到的time_remained 决定发送几次
                     self.send_msg_total = max(1, int(time_remained / self.message_interval))
                     if self.workflow_title:
-                        message = f"🧑‍🎨 正在生成图片... \n 当前模式：{self.workflow_title}\n 预计时间: {time_remained}秒"
+                        message += f"🧑‍🎨 正在生成图片... \n 当前模式：{self.workflow_title}\n 预计时间: {time_remained}秒"
                     else:
-                        message = f"🧑‍🎨 正在生成图片... \n 预计时间: {time_remained}秒"
+                        message += f"🧑‍🎨 正在生成图片... \n 预计时间: {time_remained}秒"
                     if queue:
                         message += f"\n🚶‍♂️🚶‍♀️ 队列人数: {queue}"
                 else:
@@ -183,11 +188,11 @@ class EasyAiClient:
                             message = f"绘图进度: {progress}%，剩余时间: {time_remained}秒"
                             self.sent_progress_points.add(point)
                 if status == "success":
-                    message = "✅ 任务完成，开始下载图片..."
+                    message += "✅ 任务完成，开始下载图片..."
                     # {"queue_status":{"task_id":"675818777fec874a8e390453","server":"NAS","status":"success","data":{"status":"success","output":["http://kanju.la:59000/comfyui/image/temps/674f2650869e89835a6ef3e4/g4Zxa2-1K_00339_.png"],"type":"image","message":""},"message":""}}
                     self.output = data['queue_status']['data']['output']
                 elif status == "failed":
-                    message = "🚨 任务失败，请重试"
+                    message += "🚨 任务失败，请重试"
                 
                 # 如果message不为空，则发送消息
                 if message:
