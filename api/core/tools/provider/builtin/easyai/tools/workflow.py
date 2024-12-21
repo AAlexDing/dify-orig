@@ -16,16 +16,19 @@ class EasyAiWorkflowTool(BuiltinTool):
         base_url = self.runtime.credentials.get("base_url", "")
         if not base_url:
             return self.create_text_message("请输入base_url")
-        refresh_token = self.runtime.credentials.get("refresh_token", "")
-        if not refresh_token:
-            return self.create_text_message("请输入refresh_token")
+        username = self.runtime.credentials.get("username", "")
+        if not username:
+            return self.create_text_message("请输入username")
+        password = self.runtime.credentials.get("password", "")
+        if not password:
+            return self.create_text_message("请输入password")
         socket_url = self.runtime.credentials.get("socket_url", "")
         if not socket_url:
             return self.create_text_message("请输入socket_url")
         send_msg_api = self.runtime.credentials.get("send_msg_api", "")
         if not send_msg_api:
             return self.create_text_message("请输入send_msg_api")
-        easyai = EasyAiClient(base_url, socket_url, send_msg_api, refresh_token)
+        easyai = EasyAiClient(base_url, socket_url, send_msg_api, username, password)
         
         # 获取参数
         params = tool_parameters.get("params", "")

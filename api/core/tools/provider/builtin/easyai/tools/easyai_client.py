@@ -9,45 +9,65 @@ from yarl import URL
 
 
 class EasyAiClient:
-    def __init__(self, base_url: str, socket_url: str, send_msg_api: str = "", refresh_token: str = ""):
+    def __init__(self, base_url: str, socket_url: str, send_msg_api: str, username: str, password: str):
         self.base_url = URL(base_url)
-        self.refresh_token = refresh_token
+        self.username = username
+        self.password = password
         self.socket_url = socket_url
         self.send_msg_api = send_msg_api
+        
         self.send_msg_total = None
         self.sent_progress_points = set()
         self.workflow_title = ""
-        self.client_id = ""
-        self.client_username = ""
+        self.login_status = {}
         self.output = []
-        self.get_token()
+        self.refresh_login_status()
 
-    def get_token(self):
-        # 把获取到的状态放在本地easyai.json文件中，如果token有效，则返回token，否则重新获取
+    def refresh_login_status(self):
+        """
+        刷新登录状态
+        """
+        
+        # 使用缓存获取status
         if os.path.exists("easyai.json"):
             local_status = Path("easyai.json").read_text()
-            if self.check_token_valid(local_status):
-                status = json.loads(local_status)
-                self.client_id = status.get("_id")
-                self.client_username = status.get("username")
-                return status.get("token")
-        response = httpx.post(
-            f"{self.base_url}/auth/refreshTokens",
-            json={"refreshToken": self.refresh_token},
-            headers={"Content-Type": "application/json", "Accept": "*/*"},
-        )
-        response_data = response.json()
-        self.client_id = response_data.get("_id")
-        self.client_username = response_data.get("username")
-        Path("easyai.json").write_text(json.dumps(response_data))
-        return response_data.get("token")
+            self.login_status = json.loads(local_status)
+            
+        # 如果token有效，则返回True
+        try:
+            if self.login_status and self.check_token_valid(self.login_status.get("token")):    
+                return True
+        except Exception as e:
+            print(f"读取本地状态失败: {e}")
 
-    def check_token_valid(self, status: str):
+        # 缓存token失效，用refresh_token获取status
+        if self.login_status and self.login_status.get("refresh_token"):
+            print("尝试使用refresh_token获取新status")
+            response = httpx.post(
+                f"{self.base_url}/auth/refreshTokens",
+                json={"refreshToken": self.login_status.get("refresh_token")},
+                headers={"Content-Type": "application/json", "Accept": "*/*"},
+            )
+            response_data = response.json()
+            if response_data.get("_id"):
+                Path("easyai.json").write_text(json.dumps(response_data))
+                self.login_status = response_data
+                return True
+
+        # 如果refresh_token失效，则重新登录
+        print("refresh_token失效，使用用户名密码重新登录")
+        status = self.login_by_username(self.username, self.password)
+        if status:
+            Path("easyai.json").write_text(json.dumps(status))
+            self.login_status = status
+            return True
+        else:
+            return False
+            
+    def check_token_valid(self, token: str):
         """
         检查token是否有效
         """
-        status = json.loads(status)
-        token = status.get("token")
         if not token:
             return False
         response = httpx.get(
@@ -56,10 +76,27 @@ class EasyAiClient:
         )
         return response.status_code == 200
 
+    def login_by_username(self, username: str, password: str):
+        if not username or not password:
+            return {}
+        response = httpx.post(
+            f"{self.base_url}/users/loginByUsername",
+            json={"username": username, "password": password},
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
+        )
+        json_data = response.json()
+        if json_data.get("status") == "success":
+            return json_data.get("data")
+        else:
+            print(f"登录失败: {json_data.get('message')}")
+            return {}
+
     def get_draw_server(self):
+        # 刷新登录状态
+        self.refresh_login_status()
         try:
             response = httpx.get(f"{self.base_url}/draw/server", timeout=(2, 10), 
-                                 headers={"Authorization": f"Bearer {self.get_token()}"})
+                                 headers={"Authorization": f"Bearer {self.login_status.get('token')}"})
             if response.status_code == 200:
                 return response.json()
             elif response.status_code == 401:
@@ -75,11 +112,12 @@ class EasyAiClient:
         """
         # created_at 格式 1733758176606
         created_at = int(time.time() * 1000)
+        self.refresh_login_status()
         response = httpx.post(
             f"{self.base_url}/draw/history",
             json={"workflow_id": workflow_id, "user_id": user_id, "params": params, "options": options, "type": type,
                   "status": 0, "created_at": created_at},
-            headers={"Authorization": f"Bearer {self.get_token()}"},
+            headers={"Authorization": f"Bearer {self.login_status.get('token')}"},
         )
         response_data = response.json()
         task_id = response_data.get("_id", "")
@@ -89,10 +127,11 @@ class EasyAiClient:
         """
         提交自定义工作流
         """
+        self.refresh_login_status()
         response = httpx.post(
             f"{self.base_url}/draw/customWorkflow",
-            json={"client_id": self.client_id, "socket_id": socket_id, "params": params, "options": options},
-            headers={"Authorization": f"Bearer {self.get_token()}"}, timeout=(2, 10)
+            json={"client_id": self.login_status.get("_id"), "socket_id": socket_id, "params": params, "options": options},
+            headers={"Authorization": f"Bearer {self.login_status.get('token')}"}, timeout=(2, 10)
         )
         if response.status_code == 201:
             status = response.json().get("status")
@@ -105,9 +144,10 @@ class EasyAiClient:
         """
         上传图片
         """
+        self.refresh_login_status()
         response = httpx.post(
             f"{self.base_url}/file/upload",
-            headers={"Authorization": f"Bearer {self.get_token()}"},
+            headers={"Authorization": f"Bearer {self.login_status.get('token')}"},
             files={"file": image_file} 
         )
         return response.json()
@@ -134,7 +174,7 @@ class EasyAiClient:
             # print("连接成功，当前sid：", self.sio.sid)
             # 连接成功后发送认证消息
             auth_message = {
-                "user_id": self.client_id,
+                "user_id": self.login_status.get("_id"),
                 "type": "auth"
             }
             self.sio.emit("message", auth_message)
@@ -211,9 +251,9 @@ class EasyAiClient:
         self.message_interval = message_interval
         
         # 创建绘图历史
-        if not self.client_id:
-            self.get_token()
-        task_id = self.create_history(options["workflow_id"], self.client_id, params, options)
+        if not self.login_status.get("_id"):
+            self.refresh_login_status()
+        task_id = self.create_history(options["workflow_id"], self.login_status.get("_id"), params, options)
         if not task_id:
             print("创建绘图历史失败")
             return []
