@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from typing import Any
 
 import socketio
@@ -11,27 +13,28 @@ from core.tools.provider.builtin_tool_provider import BuiltinToolProviderControl
 class EasyAiProvider(BuiltinToolProviderController):
     def _validate_credentials(self, credentials: dict[str, Any]) -> None:
         base_url = URL(credentials.get("base_url"))
-        refresh_token = credentials.get("refresh_token")
+        username = credentials.get("username")
+        password = credentials.get("password")
         socket_url = credentials.get("socket_url")
         try:
             response = post(
-                f"{base_url}/auth/refreshTokens", 
-                json={"refreshToken": refresh_token},
+                f"{base_url}/users/loginByUsername", 
+                json={"username": username, "password": password},
                 headers={
                     "Content-Type": "application/json",
-                    "Accept": "*/*"
+                    "Accept": "application/json"
                 }
             )
-            if response.status_code == 401:
-                raise ToolProviderCredentialValidationError("认证失败：refresh token 无效或已过期")
+            json_data = response.json()
+            if not json_data.get("status") == "success":
+                raise ToolProviderCredentialValidationError("认证失败：用户名或密码错误")
             
-            # 检查 HTTP 响应状态码
-            response.raise_for_status()
-            # 获取响应的 JSON 数据
-            response_data = response.json()
+            data = json_data.get("data")
             
-            if not response_data.get("token"):
+            if not data.get("token"):
                 raise ToolProviderCredentialValidationError("Invalid response: token not found")
+            
+            Path("easyai.json").write_text(json.dumps(data))
 
             # 检查socketio连接
             sio = socketio.Client()
