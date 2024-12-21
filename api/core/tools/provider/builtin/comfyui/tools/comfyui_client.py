@@ -9,7 +9,6 @@ from yarl import URL
 
 class ComfyUiClient:
     def __init__(self, base_url: str, token: str = ''):
-    def __init__(self, base_url: str, token: str = ''):
         self.base_url = URL(base_url)
         self.token = token
 
