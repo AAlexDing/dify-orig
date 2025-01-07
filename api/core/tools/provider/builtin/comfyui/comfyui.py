@@ -14,10 +14,8 @@ class ComfyUIProvider(BuiltinToolProviderController):
         ws_protocol = "ws"
         if base_url.scheme == "https":
             ws_protocol = "wss"
-        token = URL(credentials.get("token"))
         ws_address = f"{ws_protocol}://{base_url.authority}/ws?clientId=test123"
-        if token:
-            ws_address += "&token={}".format(token)
+
         try:
             ws.connect(ws_address)
         except Exception as e:
