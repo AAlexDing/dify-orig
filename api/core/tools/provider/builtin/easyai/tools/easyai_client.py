@@ -106,6 +106,16 @@ class EasyAiClient:
         except Exception as e:
             return []
 
+    def refresh_draw_server(self, server_id: str):
+        """
+        刷新绘图服务器
+        """
+        response = httpx.get(
+            f"{self.base_url}/draw/server/verify/{server_id}",
+            headers={"Authorization": f"Bearer {self.login_status.get('token')}"},
+        )
+        return response.json()
+
     def create_history(self, workflow_id: str, user_id: str, params: dict, options: dict, type: str = "image"):
         """
         创建绘图历史

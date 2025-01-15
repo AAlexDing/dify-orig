@@ -35,6 +35,11 @@ class CheckAvaliabilityTool(BuiltinTool):
             for server in draw_server:
                 if server.get("status") == 1:
                     return self.create_text_message("1")
+            # 如果所有服务器都不可用，则尝试刷新所有服务器
+            for server in draw_server:
+                refresh_status = easyai.refresh_draw_server(server.get("_id"))
+                if refresh_status.get("status") == 1:
+                    return self.create_text_message("1")
             return self.create_text_message("0")
         else:
             return self.create_text_message("0")
