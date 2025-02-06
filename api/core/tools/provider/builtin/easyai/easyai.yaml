@@ -1,0 +1,61 @@
+identity:
+  author: Ding
+  name: easyai
+  label:
+    en_US: EasyAI
+    zh_Hans: EasyAI
+  description:
+    en_US: EasyAI is a tool for scheduling multiple ComfyUI servers.
+    zh_Hans: EasyAI 是一个可以调度多个ComfyUI服务端的工具。
+  icon: icon.png
+  tags:
+    - image
+credentials_for_provider:
+  base_url:
+    type: text-input
+    required: true
+    label:
+      en_US: The API URL of EasyAI Server
+      zh_Hans: EasyAI服务器的API URL
+    placeholder:
+      en_US: Please input your EasyAI server's API URL
+      zh_Hans: 请输入你的 EasyAI 服务器的 API URL
+    url: https://docs.dify.ai/guides/tools/tool-configuration/easyai
+  username:
+    type: text-input
+    required: true
+    label:
+      en_US: The username of EasyAI Server
+      zh_Hans: EasyAI服务器的用户名
+    placeholder:
+      en_US: Please input your EasyAI server's username
+      zh_Hans: 请输入你的 EasyAI 服务器的用户名
+  password:
+    type: text-input
+    required: true
+    label:
+      en_US: The password of EasyAI Server
+      zh_Hans: EasyAI服务器的密码
+    placeholder:
+      en_US: Please input your EasyAI server's password
+      zh_Hans: 请输入你的 EasyAI 服务器的密码
+  socket_url:
+    type: text-input
+    required: true
+    label:
+      en_US: The socket URL of EasyAI Server
+      zh_Hans: EasyAI服务器的socket URL
+    placeholder:
+      en_US: Please input your EasyAI server's socket URL
+      zh_Hans: 请输入你的 EasyAI 服务器的 socket URL
+    url: https://docs.dify.ai/guides/tools/tool-configuration/easyai
+  send_msg_api:
+    type: text-input
+    required: false
+    label:
+      en_US: The send_msg plugin API of Dify on Wechat
+      zh_Hans: Dify-On-Wechat的send_msg插件的API
+    placeholder:
+      en_US: Please input your Dify on Wechat's send_msg plugin's API
+      zh_Hans: 请输入你的 Dify-On-Wechat 的 send_msg 插件的 API
+    url: https://docs.dify.ai/guides/tools/tool-configuration/easyai

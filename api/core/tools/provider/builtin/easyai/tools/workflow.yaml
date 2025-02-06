@@ -1,0 +1,71 @@
+identity:
+  name: easyai_workflow
+  author: Dinggg!
+  label:
+    en_US: EasyAI Workflow
+    zh_Hans: EasyAI 工作流
+    pt_BR: EasyAI Workflow
+description:
+  human:
+    en_US: Input an API format json string exported from EasyAI, and generate an image. 
+    zh_Hans: 输入由EasyAI导出的API格式的json文件，即可生成图像
+    pt_BR: Input an API format json string exported from EasyAI, and generate an image.
+  llm: Generate an image using EasyAI based on the given json file.
+parameters:
+  - name: params
+    type: string
+    required: true
+    label:
+      en_US: Workflow Parameters
+      zh_Hans: 工作流参数
+      pt_BR: Workflow Parameters
+    human_description:
+      en_US: The parameters of the workflow
+      zh_Hans: 工作流参数
+      pt_BR: The parameters of the workflow
+    llm_description: The parameters of the workflow
+    form: llm
+  - name: options
+    type: string
+    required: true
+    label:
+      en_US: Workflow
+      zh_Hans: 工作流
+      pt_BR: Workflow
+    llm_description: The options of the workflow
+    form: llm
+  - name: receiver_name
+    type: string
+    required: false
+    label:
+      en_US: Receiver Name
+      zh_Hans: 微信接收者昵称
+      pt_BR: Receiver Name
+    llm_description: The name of the receiver
+    form: llm
+  - name: group_name
+    type: string
+    required: false
+    label:
+      en_US: Group Name (Optional)
+      zh_Hans: 微信群名称（可选）
+      pt_BR: Group Name (Optional)
+    llm_description: The name of the group
+    form: llm
+  - name: message_interval
+    type: number
+    required: true
+    default: 25
+    minimum: 1
+    maximum: 100
+    label:
+      en_US: Message Interval
+      zh_Hans: 微信进度通知消息间隔
+      pt_BR: Message Interval
+    human_description:
+      en_US: The interval of the message
+      zh_Hans: 微信进度通知消息间隔
+      pt_BR: The interval of the message
+    llm_description: The interval of the message
+    form: form
+

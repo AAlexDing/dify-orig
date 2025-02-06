@@ -1,0 +1,13 @@
+identity:
+  name: easyai_check_avaliability
+  author: Dinggg!
+  label:
+    en_US: Check Avaliability
+    zh_Hans: 检查绘图服务可用性
+    pt_BR: Check Avaliability
+description:
+  human:
+    en_US: Check if the drawing service is available,if available return 1,otherwise return 0
+    zh_Hans: 检查绘图服务是否可用，有可用服务器返回 1，否则返回 0
+    pt_BR: Check if the drawing service is available,if available return 1,otherwise return 0
+  llm: Check if the drawing service is available,if available return 1,otherwise return 0
