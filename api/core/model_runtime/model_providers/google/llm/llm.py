@@ -174,6 +174,8 @@ class GoogleLargeLanguageModel(LargeLanguageModel):
         :return: full response or stream response chunk generator result
         """
         config_kwargs = model_parameters.copy()
+        if model == "gemini-2.0-flash-exp":
+            config_kwargs["response_modalities"] = ["Text", "Image"]
         if schema := config_kwargs.pop("json_schema", None):
             try:
                 schema = json.loads(schema)
